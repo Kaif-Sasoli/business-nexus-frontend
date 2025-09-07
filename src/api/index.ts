@@ -11,7 +11,7 @@ import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig, AxiosResp
     // Request interceptor 
     apiClient.interceptors.request.use(
       (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => { 
-        const token = localStorage.getItem("accessToken");
+        const token = localStorage.getItem(import.meta.env.VITE_ACCESS_KEY);
         if (token && config.headers) {
           config.headers["Authorization"] = `Bearer ${token}`;
         }
