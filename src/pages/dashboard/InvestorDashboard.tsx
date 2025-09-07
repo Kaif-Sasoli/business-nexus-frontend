@@ -17,7 +17,7 @@ export const InvestorDashboard: React.FC = () => {
    const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(true);
    const [dashboard, setDashboard] = useState<null | InvestorDashboardResponse["data"]>(null);
   const [entrepreneurs, setEntrepreneurs] = useState<EntrepreneurCardData[]>(
     []
@@ -90,8 +90,14 @@ export const InvestorDashboard: React.FC = () => {
     );
   };
 
-    if (loading) return <p>Loading dashboard...</p>;
-  if (!dashboard) return <p>Failed to load dashboard</p>;
+   if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+  if (!dashboard) return <div className="min-h-screen flex items-center justify-center"><h1>Failed to load Dashboard</h1></div>;
   
   return (
     <div className="space-y-6 animate-fade-in">
