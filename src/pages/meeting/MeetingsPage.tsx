@@ -45,7 +45,7 @@ export const MeetingsPage: React.FC = () => {
   const { user } = useAuth(); 
   const { socket, isConnected } = useSocket();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [showNewMeeting, setShowNewMeeting] = useState(false);
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
   const [collaborators, setCollaborators] = useState<any[]>([]);
@@ -65,7 +65,7 @@ export const MeetingsPage: React.FC = () => {
   // Fetch meetings and collaborators
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
+      setIsLoading(true);
       try {
         const meetingsRes = await getMeetings();
         setMeetings(Array.isArray(meetingsRes) ? meetingsRes : []);
@@ -82,7 +82,7 @@ export const MeetingsPage: React.FC = () => {
         setMeetings([]);
         setCollaborators([]);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -99,7 +99,7 @@ export const MeetingsPage: React.FC = () => {
   // Cancel Meeting
   const handleCancel = async (meetingId: string) => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       await cancelMeetingAPI(meetingId);
       toast.success("Meeting cancelled successfully!");
 
@@ -110,7 +110,7 @@ export const MeetingsPage: React.FC = () => {
       console.error(error);
       toast.error("Failed to cancel meeting");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -311,8 +311,10 @@ const handleStartMeeting = async (meetingId: string) => {
       {/* Main content: list or calendar */}
       {view === "list" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {loading ? (
-            <p className="text-gray-500">Loading meetings...</p>
+          {isLoading ? (
+            <div className="col-span-2 flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-600"></div>
+            </div>
           ) : filteredMeetings.length === 0 ? (
             <p className="text-gray-500">No meetings found</p>
           ) : (

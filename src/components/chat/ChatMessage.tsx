@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { Message } from '../../types';
 import { Avatar } from '../ui/Avatar';
-import { findUserById } from '../../data/users';
 import { User } from '../../types';
 import { getUserById } from '../../api/user';
 

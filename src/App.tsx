@@ -36,22 +36,14 @@ import { InvestPage } from './pages/invest/InvestPage';
 // Chat Pages
 import { ChatPage } from './pages/chat/ChatPage';
 
+import { CallModal } from "./components/call/CallModal";
+import { useSocket } from "./context/SocketContext";
+import { useAuth } from "./context/AuthContext";
+
+
 import { io } from "socket.io-client";
 
 function App() {
-
-//   const testSocket = io("http://localhost:5000", {
-//   withCredentials: true,
-// });
-
-// testSocket.on("connect", () => {
-//   console.log("✅ Test socket connected:", testSocket.id);
-// });
-
-// testSocket.on("connect_error", (err) => {
-//   console.error("❌ Connection failed:", err.message);
-// });
-
   return (
     <AuthProvider>
       <SocketProvider>
@@ -135,10 +127,29 @@ function App() {
             {/* Catch all other routes and redirect to login */}
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
+
+          {/* 🔑 Global Call Modal */}
+          <GlobalCallModal />
       </Router>
       </SocketProvider>
     </AuthProvider>
   );
 }
+
+    function GlobalCallModal() {
+      const { callState, setCallState } = useSocket();
+      const { user } = useAuth();
+    
+      return (
+        <CallModal
+          isOpen={callState?.open || false}
+          onClose={() => setCallState(null)}
+          isCaller={callState?.caller || false}
+          callType={callState?.type || "video"}
+          toUserId={callState?.toUserId || ""}
+          fromUserId={callState?.fromUserId}
+        />
+      );
+    }
 
 export default App;

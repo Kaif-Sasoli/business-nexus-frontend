@@ -1,31 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getConversationsForUser } from '../../data/messages';
 import { ChatUserList } from '../../components/chat/ChatUserList';
 import { getConversations } from '../../api/message';
 import { ChatConversation } from '../../types';
 
-// import { MessageCircle } from 'lucide-react';
 
 export const MessagesPage: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
-  // console.log("Conversations: ", conversations)
+
   if (!user) return null;
 
-       useEffect(() => {
-        getConversations()
-          .then((data) => {
-            if (data?.conversations) {
-              setConversations(data.conversations);
-            }
-          })
-          .catch((err) => {
-            console.error("Error fetching conversations:", err);
-          });
-      }, []);
+      
+  useEffect(() => {
+    setIsLoading(true);
+    getConversations()
+      .then((data) => {
+        if (data?.conversations) {
+          setConversations(data.conversations);
+        } else {
+          setConversations([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Error fetching conversations:", err);
+        setConversations([]);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, []);
+
+    if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
   
   return (
     <div className="h-[calc(100vh-8rem)] bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-fade-in">

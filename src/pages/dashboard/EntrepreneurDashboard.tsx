@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, Bell, Calendar, TrendingUp, AlertCircle, PlusCircle } from 'lucide-react';
+import { Users, Bell, Calendar, TrendingUp, AlertCircle, PlusCircle, Loader2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { Card, CardBody, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -18,7 +18,7 @@ export const EntrepreneurDashboard: React.FC = () => {
   const [collaborationRequests, setCollaborationRequests] = useState<CollaborationRequest[]>([]);
   const [dashboardData, setDashboardData] = useState<EntrepreneurDashboardResponse["data"] | null>(null);
   const [recommendedInvestors, setRecommendedInvestors] = useState<Investor[]>([]);
-  const [isloading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   const upcomingMeetingsCount = dashboardData?.meetings
   ? dashboardData.meetings.filter(meeting => meeting.status === "scheduled").length
@@ -110,6 +110,14 @@ export const EntrepreneurDashboard: React.FC = () => {
   };
   
   if (!user) return null;
+
+    if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
   
   const pendingRequests = collaborationRequests.filter(req => req.status === 'pending');
   

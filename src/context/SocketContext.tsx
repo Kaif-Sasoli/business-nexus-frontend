@@ -3,10 +3,13 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { io, Socket } from "socket.io-client";
 import { useAuth } from "./AuthContext";
 import { toast } from "react-hot-toast";
+import { CallState } from '../types/index'
 
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
+  callState: CallState | null;
+  setCallState: React.Dispatch<React.SetStateAction<CallState | null>>;
 }
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
@@ -16,9 +19,11 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
+  // Call state lives here globally
+  const [callState, setCallState] = useState<CallState | null>(null);
+
   useEffect(() => {
     if (isAuthenticated && user?.id) {
-      // Create socket instance
       const newSocket = io(import.meta.env.VITE_BASE_URL, {
         withCredentials: true,
         transports: ["websocket"],
@@ -26,18 +31,21 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
       setSocket(newSocket);
 
-      // Register user when connected
       newSocket.on("connect", () => {
         setIsConnected(true);
         newSocket.emit("register", user.id);
         console.log("🟢 Socket connected:", newSocket.id);
       });
 
-      // Handle offline messages
-      newSocket.on("offlineMessages", (messages) => {
-        console.log("Received offline messages:", messages);
-        toast.success(`You have ${messages.length} new messages`);
-        // Here you can store messages in state or redux if you want
+      // Incoming call handler
+      newSocket.on("call:incoming", ({ fromUserId, callType }) => {
+        setCallState({
+          open: true,
+          caller: false,
+          type: callType,
+          fromUserId,
+          toUserId: user.id,
+        });
       });
 
       newSocket.on("disconnect", () => {
@@ -45,16 +53,17 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
         console.log("🔴 Socket disconnected");
       });
 
-      //  on logout/unmount
       return () => {
         newSocket.disconnect();
         setSocket(null);
       };
     }
-  }, [isAuthenticated, user?._id]);
+  }, [isAuthenticated, user?.id]);
 
   return (
-    <SocketContext.Provider value={{ socket, isConnected }}>
+    <SocketContext.Provider
+      value={{ socket, isConnected, callState, setCallState }}
+      >
       {children}
     </SocketContext.Provider>
   );

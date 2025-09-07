@@ -50,7 +50,7 @@ export const ChatUserList: React.FC<ChatUserListProps> = ({ conversations }) => 
                     src={otherUser.avatarUrl}
                     alt={otherUser.name}
                     size="md"
-                    status={otherUser.isOnline ? 'online' : 'offline'}
+                    status={otherUser?.isOnline ? 'online' : 'offline'}
                     className="mr-3 flex-shrink-0"
                   />
                   

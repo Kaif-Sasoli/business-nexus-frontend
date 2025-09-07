@@ -12,7 +12,7 @@ export const InvestorsPage: React.FC = () => {
   const [selectedStages, setSelectedStages] = useState<string[]>([]);
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [investors, setInvestors] = useState<Investor[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Get unique investment stages and interests
   const allStages = Array.from(new Set(investors.flatMap(i => i.investmentStage)));
@@ -21,7 +21,7 @@ export const InvestorsPage: React.FC = () => {
    // Fetch investors whenever filters change
   useEffect(() => {
     const fetchInvestors = async () => {
-      setLoading(true);
+      setIsLoading(true);
       try {
         const res = await searchInvestors({
           searchQuery,
@@ -32,7 +32,7 @@ export const InvestorsPage: React.FC = () => {
       } catch (err) {
         console.error("Error fetching investors:", err);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
@@ -72,6 +72,15 @@ export const InvestorsPage: React.FC = () => {
         : [...prev, interest]
     );
   };
+
+  // Loader
+    if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+      );
+    }
   
   return (
     <div className="space-y-6 animate-fade-in">

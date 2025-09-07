@@ -1,4 +1,5 @@
 // types/index.ts
+import { Socket } from "socket.io-client";
 
 /* ----------------------------- USER TYPES ----------------------------- */
 export type UserRole = 'entrepreneur' | 'investor';
@@ -338,6 +339,8 @@ export interface Message {
   content: string;
   timestamp: string;
   isRead: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ChatConversation {
@@ -348,6 +351,7 @@ export interface ChatConversation {
     name: string;
     avatarUrl: string;
     role?: string;
+    isOnline: boolean;
   };
   lastMessage?: Message;
   updatedAt: string;
@@ -384,4 +388,20 @@ export interface AuthContextType {
   updateProfile: (userId: string, updates: Partial<User>) => Promise<void>;
   isAuthenticated: boolean;
   isLoading: boolean;
+}
+
+// SocketContextType
+export interface CallState {
+  open: boolean;
+  caller: boolean;
+  type: "video" | "audio";
+  fromUserId?: string;
+  toUserId?: string;
+}
+
+export interface SocketContextType {
+  socket: Socket | null;  // error cannot find socket
+  isConnected: boolean;
+  callState: CallState | null;
+  setCallState: React.Dispatch<React.SetStateAction<CallState | null>>;
 }

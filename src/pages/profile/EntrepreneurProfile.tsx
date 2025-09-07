@@ -6,10 +6,8 @@ import { Button } from '../../components/ui/Button';
 import { Card, CardBody, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
-import { entrepreneurs, findUserById } from '../../data/users';
-import { createCollaborationRequest, getRequestsFromInvestor } from '../../data/collaborationRequests';
-import { Entrepreneur } from '../../types';
-import { getStartupByUserId, Startup, UserInfo   } from '../../api/entrepreneur';
+import { getStartupByUserId } from '../../api/entrepreneur';
+import { UserInfo, Startup } from '../../types/index'
 import { sendRequest, checkRequestExists } from '../../api/request';
 import { useNavigate } from 'react-router-dom';
 import toast from "react-hot-toast";
@@ -21,7 +19,7 @@ export const EntrepreneurProfile: React.FC = () => {
 
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [startup, setStartup] = useState<Startup | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [hasRequestedCollaboration, setHasRequestedCollaboration] = useState(false);
   const [requestStatus, setRequestStatus] = useState('no')
 
@@ -31,7 +29,7 @@ export const EntrepreneurProfile: React.FC = () => {
       // Fetch Startup
       useEffect(() => {
         if (!id) return;
-        setLoading(true);
+        setIsLoading(true);
       
         getStartupByUserId(id)
           .then((res) => {
@@ -42,7 +40,7 @@ export const EntrepreneurProfile: React.FC = () => {
             setStartup(null);
           })
           .finally(() => {
-            setLoading(false);
+            setIsLoading(false);
           });
       }, [id]);
 
@@ -53,7 +51,6 @@ export const EntrepreneurProfile: React.FC = () => {
       checkRequestExists(currentUser.id, id, startup._id)
         .then((res) => {
           setHasRequestedCollaboration(res.success && res.exists);
-          console.log("Boyr", res.status);
           setRequestStatus(res.status || "none");
         })
         .catch(() => {
@@ -88,11 +85,15 @@ export const EntrepreneurProfile: React.FC = () => {
    };
 
   // Loader
-  if (loading) {
-    return <div className="p-6 text-center">Loading...</div>;
-  }
+    if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+      );
+    }
 
-  if (!startup && user?.role === 'entrepreneur') {
+  if (!startup && currentUser?.role === 'entrepreneur') {
     return (
       <div className="w-full h-[calc(100vh-100px)] flex flex-col items-center justify-center text-center px-4">
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900">

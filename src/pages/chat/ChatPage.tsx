@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Send, Phone, Video, Info, Smile } from 'lucide-react';
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
 import { Avatar } from '../../components/ui/Avatar';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
@@ -8,12 +10,9 @@ import { ChatMessage } from '../../components/chat/ChatMessage';
 import { ChatUserList } from '../../components/chat/ChatUserList';
 import { useAuth } from '../../context/AuthContext';
 import { ChatConversation } from '../../types';
-// import { Message } from '../../types';
-// import { findUserById } from '../../data/users';
-// import { getMessagesBetweenUsers, sendMessage, getConversationsForUser } from '../../data/messages';
-// import { getUserById } from '../../api/user'
 import { ChatPartner } from '../../types';
-import { getMessagesBetweenUsers, sendMessage, getConversations, Message } from "../../api/message";
+import { getMessagesBetweenUsers, sendMessage, getConversations } from "../../api/message";
+import { Message } from '../../types/index'
 import { MessageCircle } from 'lucide-react';
 import { useSocket } from '../../context/SocketContext';
 import { CallModal } from '../../components/call/CallModal';
@@ -21,39 +20,16 @@ import { CallModal } from '../../components/call/CallModal';
 
 export const ChatPage: React.FC = () => {
 
-  const { socket } = useSocket();
+  const { socket, setCallState } = useSocket();
 
   const { userId } = useParams<{ userId: string }>();
   const { user: currentUser } = useAuth();
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const messagesEndRef = useRef<null | HTMLDivElement>(null)
   const [chatPartner, setChatPartner] = useState<ChatPartner>();
-  const [callState, setCallState] = useState<{
-  open: boolean;
-  caller: boolean;
-  type: "video" | "audio";
-} | null>(null);
-const [incomingFrom, setIncomingFrom] = useState<string | null>(null);
-
-
-    useEffect(() => {
-      if (!socket) return;
-    
-      socket.on("call:incoming", ({ fromUserId, callType }) => {
-        setCallState({
-          open: true,
-          caller: false,
-          type: callType,
-        });
-        setIncomingFrom(fromUserId);
-      });
-    
-      return () => {
-        socket.off("call:incoming");
-      };
-    }, [socket]);
 
     useEffect(() => {
   if (!socket) return;
@@ -61,16 +37,19 @@ const [incomingFrom, setIncomingFrom] = useState<string | null>(null);
   // When you receive a message from the other user
   socket.on("receiveMessage", (message) => {
     setMessages((prev) => [...prev, message]);
+      if (chatPartner) {
+     updateConversationList(message, chatPartner); 
+  }
   });
 
-  // When your message is confirmed as sent by the server
-  socket.on("messageSent", (message) => {
-    setMessages((prev) => {
-      
-      if (prev.find((m) => m.id === message.id)) return prev;
-      return [...prev, message];
+    // When your message is confirmed as sent by the server
+     socket.on("messageSent", (message) => {
+      if (message.senderId === currentUser?.id) return; 
+      setMessages((prev) => [...prev, message]);
+      if (chatPartner) {
+      updateConversationList(message, chatPartner); 
+    }
     });
-  });
 
   return () => {
     socket.off("receiveMessage");
@@ -78,12 +57,10 @@ const [incomingFrom, setIncomingFrom] = useState<string | null>(null);
   };
 }, [socket]);
 
-
-
    // Load conversations from backend
   useEffect(() => {
     if (currentUser) {
-      getConversations().then((data) => {
+        getConversations().then((data) => {
         setConversations(data?.conversations)
       }).catch(console.error);
     }
@@ -104,8 +81,7 @@ const [incomingFrom, setIncomingFrom] = useState<string | null>(null);
   useEffect(() => {
     // Scroll to bottom of messages
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-  
+  }, [messages]);  
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,30 +92,56 @@ const [incomingFrom, setIncomingFrom] = useState<string | null>(null);
 
       // Optimistic update
       setMessages((prev) => [...prev, message]);
+        if (chatPartner) {
+         updateConversationList(message, chatPartner); 
+       }
       setNewMessage('');
     } catch (err) {
       console.error('Error sending message:', err);
     }
+  };
+
+    const updateConversationList = (message: Message, partner: ChatPartner) => {
+     setConversations((prev) => {
+      // Check if conversation exists
+      const existing = prev.find((c) => c.partner.id === partner.id);
+      
+      if (existing) {
+        // Update lastMessage + unreadCount
+        const updated = {
+          ...existing,
+          lastMessage: message,
+          updatedAt: message.createdAt,
+          unreadCount:
+            message.senderId !== currentUser?.id
+              ? existing.unreadCount + 1
+              : existing.unreadCount,
+        };
+      
+        // Move to top
+        return [updated, ...prev.filter((c) => c.id !== existing.id)];
+      } else {
+        // New conversation
+        const newConv: ChatConversation = {
+          id: `${currentUser?.id}-${partner.id}`,
+          participants: [currentUser?.id || "", partner.id],
+          partner,
+          lastMessage: message,
+          updatedAt: message.createdAt,
+          unreadCount: message.senderId !== currentUser?.id ? 1 : 0,
+        };
+        return [newConv, ...prev];
+      }
+    });
   };
   
   if (!currentUser) return null;
   
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-white border border-gray-200 rounded-lg overflow-hidden animate-fade-in">
-      <CallModal
-        isOpen={callState?.open || false}
-        onClose={() => {
-          setCallState(null);
-          setIncomingFrom(null);
-        }}
-        isCaller={callState?.caller || false}
-        callType={callState?.type || "video"}
-        toUserId={userId || ""}
-        fromUserId={incomingFrom || undefined}
-      />
       
       {/* Conversations sidebar */}
-      <div className="hidden md:block w-1/3 lg:w-1/4 border-r border-gray-200">
+      <div className="hidden md:block w-1/3 lg:w-64 border-r border-gray-200">
         <ChatUserList conversations={conversations} />
       </div>
       
@@ -173,7 +175,9 @@ const [incomingFrom, setIncomingFrom] = useState<string | null>(null);
                   className="rounded-full p-2"
                   aria-label="Voice call"
                   onClick={() => {
-                    setCallState({ open: true, caller: true, type: "audio" });
+                    setCallState({ open: true, caller: true, type: "audio", toUserId: userId ||
+                       "", fromUserId: currentUser?.id 
+                      });
                     socket?.emit("call:invite", {
                       fromUserId: currentUser?.id,
                       toUserId: userId,
@@ -190,7 +194,8 @@ const [incomingFrom, setIncomingFrom] = useState<string | null>(null);
                   className="rounded-full p-2"
                   aria-label="Video call"
                   onClick={() => {
-                    setCallState({ open: true, caller: true, type: "video" });
+                    setCallState({ open: true, caller: true, type: "video", toUserId: userId || 
+                      "", fromUserId: currentUser?.id });
                     socket?.emit("call:invite", {
                       fromUserId: currentUser?.id,
                       toUserId: userId,
@@ -239,16 +244,35 @@ const [incomingFrom, setIncomingFrom] = useState<string | null>(null);
             {/* Message input */}
             <div className="border-t border-gray-200 p-4">
               <form onSubmit={handleSendMessage} className="flex space-x-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-full p-2"
-                  aria-label="Add emoji"
-                >
-                  <Smile size={20} />
-                </Button>
                 
+                 <div className="relative">
+                   <Button
+                     type="button"
+                     variant="ghost"
+                     size="sm"
+                     className="rounded-full p-2"
+                     aria-label="Add emoji"
+                     onClick={() => setShowEmojiPicker((prev) => !prev)}
+                   >
+                     <Smile size={20} />
+                   </Button>
+                         
+
+                  {showEmojiPicker && (
+                    <div className="absolute bottom-12 left-0 z-50  h-72
+                     overflow-hidden rounded-lg shadow-lg bg-white">
+                      <Picker
+                        data={data}
+                        onEmojiSelect={(emoji: any) =>
+                          setNewMessage((prev) => prev + emoji.native)
+                        }
+                        theme="light" // optional
+                        previewPosition="none" 
+                      />
+                    </div>
+                  )}
+                 </div>
+
                 <Input
                   type="text"
                   placeholder="Type a message..."

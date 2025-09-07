@@ -6,22 +6,20 @@ import { Button } from '../../components/ui/Button';
 import { Card, CardBody, CardHeader } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
-// import { findUserById } from '../../data/users';
-import { Investor } from '../../types';
-import { getInvestorProfile, InvestorUser } from '../../api/investor';
+import { getInvestorProfile } from '../../api/investor';
+import {InvestorUser } from '../../types/index'
 
 export const InvestorProfile: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { user: currentUser } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
    const [profile, setProfile] = useState<InvestorUser | null>(null); 
-  //  console.log("Profile: ",profile)
    useEffect(() => {
     if (id) {
        getInvestorProfile(id)
         .then((res) => {
-          setLoading(false)
+          setIsLoading(false)
           setProfile(res.investor)
         } )
         .catch((err) => console.error("Error fetching investor profile:", err));
@@ -29,9 +27,13 @@ export const InvestorProfile: React.FC = () => {
   }, [id]);
 
   // Loader
-  if (loading) {
-    return <div className="p-6 text-center">Loading....</div>;
-  }
+    if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+      );
+    }
  
  if (!profile || profile.role !== 'investor') {
     return (

@@ -12,14 +12,14 @@ export const EntrepreneursPage: React.FC = () => {
   const [selectedIndustries, setSelectedIndustries] = useState<string[]>([]);
   const [selectedFundingRange, setSelectedFundingRange] = useState<string[]>([]);
    const [entrepreneurs, setEntrepreneurs] = useState<any[]>([]); 
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
 
   const fundingRanges = ['< $500K', '$500K - $1M', '$1M - $5M', '> $5M'];
 
   useEffect(() => {
     (async () => {
-      setLoading(true);
+      setIsLoading(true);
       try {
         const res = await searchEntrepreneursAPI({
           searchQuery,
@@ -37,7 +37,7 @@ export const EntrepreneursPage: React.FC = () => {
         console.error("Error fetching entrepreneurs:", error);
         setEntrepreneurs([]);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     })();
   }, [searchQuery, selectedIndustries, selectedFundingRange]);

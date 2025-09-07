@@ -38,6 +38,7 @@ export const CallModal: React.FC<CallModalProps> = ({
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const ringtoneRef = useRef<HTMLAudioElement | null>(null);
   const targetId = isCaller ? toUserId : fromUserId;
+  
 
   /** Create Peer Connection */
   const createPeerConnection = () => {
@@ -259,7 +260,16 @@ export const CallModal: React.FC<CallModalProps> = ({
         overlay: { background: "rgba(0,0,0,0.7)", zIndex: 1000 },
       }}
     >
-      <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+      <div style={{ 
+        position: 
+        "relative", 
+        width: "100%", 
+        height: "100%", 
+        display: "flex", 
+        flexDirection: "column", 
+        justifyContent: "center", 
+        alignItems: "center" 
+        }}>
         {currentCallType === "video" && callAccepted ? (
           <>
             {callAccepted && currentCallType === "video" && remoteStream && (
@@ -267,7 +277,12 @@ export const CallModal: React.FC<CallModalProps> = ({
                 autoPlay 
                 playsInline 
                 ref={(el) => el && (el.srcObject = remoteStream)} 
-                style={{ width: "100%", height: "100%", background: "#000", objectFit: "cover" }} 
+                style={{ 
+                  width: "100%", 
+                  height: "100%", 
+                  background: "#000", 
+                  objectFit: "cover" 
+                }} 
               />
             )}
             
@@ -278,29 +293,68 @@ export const CallModal: React.FC<CallModalProps> = ({
                 playsInline 
                 muted 
                 ref={(el) => el && (el.srcObject = localStream)} 
-                style={{ position: "absolute", bottom: 20, right: 20, width: 140, borderRadius: 12, boxShadow: "0 4px 12px rgba(0,0,0,0.5)" }} 
+                style={{ 
+                  position: 
+                  "absolute", 
+                  bottom: 20, 
+                  right: 20, 
+                  width: 140, 
+                  borderRadius: 12, 
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.5)" 
+                }} 
               />
             )}
           </>
         ) : (
-          <h2 style={{ color: "#fff", fontSize: "22px" }}>{isCaller ? "Calling..." : "Incoming Call"}</h2>
+          <h2 style={{ 
+            color: "#fff", 
+            fontSize: "22px" 
+          }}>
+            {isCaller ? "Calling..." : "Incoming Call"}
+          </h2>
         )}
 
-        <div style={{ position: "absolute", bottom: 30, left: "50%", transform: "translateX(-50%)", display: "flex", gap: "18px", justifyContent: "center" }}>
+        <div 
+        style={{ 
+          position: "absolute", 
+          bottom: 30, left: "50%", 
+          transform: "translateX(-50%)", 
+          display: "flex", gap: "18px", 
+          justifyContent: "center" 
+          }}>
           {!callAccepted && !isCaller ? (
             <>
-              <button style={callButtonStyle("#25D366")} onClick={handleAccept}><Phone size={28} color="#fff" /></button>
-              <button style={callButtonStyle("#FF3B30")} onClick={handleDecline}><XCircle size={28} color="#fff" /></button>
+              <button 
+              style={callButtonStyle("#25D366")} 
+              onClick={handleAccept}>
+                <Phone size={28} 
+              color="#fff" />
+              </button>
+              <button 
+              style={callButtonStyle("#FF3B30")} 
+              onClick={handleDecline}>
+                <XCircle 
+              size={28} color="#fff" /></button>
             </>
           ) : (
             <>
-              <button style={callButtonStyle("#FF3B30", 80)} onClick={endCall}><XCircle size={34} color="#fff" /></button>
-              <button style={callButtonStyle("#007AFF")} onClick={toggleVideo}>{currentCallType === "audio" ? <Video size={28} color="#fff" /> : <Phone size={28} color="#fff" />}</button>
+              <button 
+              style={callButtonStyle("#FF3B30", 80)} 
+              onClick={endCall}>
+                <XCircle size={28} 
+              color="#fff" />
+              </button>
+              <button 
+              style={callButtonStyle("#007AFF")} 
+              onClick={toggleVideo}>{currentCallType === "audio" ? 
+              <Video size={28} 
+              color="#fff" /> : <Phone size={28} color="#fff" />}</button>
             </>
           )}
         </div>
 
-        <button onClick={() => setIsFullscreen((s) => !s)} style={{ position: "absolute", top: 16, right: 16, background: "rgba(0,0,0,0.5)", borderRadius: 10, padding: 8 }}>
+        <button onClick={() => setIsFullscreen((s) => !s)} 
+        style={{ position: "absolute", top: 16, right: 16, background: "rgba(0,0,0,0.5)", borderRadius: 10, padding: 8 }}>
           {isFullscreen ? <Minimize2 color="#fff" size={20} /> : <Maximize2 color="#fff" size={20} />}
         </button>
       </div>
