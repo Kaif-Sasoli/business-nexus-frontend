@@ -48,7 +48,7 @@ export const InvestorDashboard: React.FC = () => {
       } catch (err) {
         console.error("Failed to fetch dashboard:", err);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     })();
   }, []);
