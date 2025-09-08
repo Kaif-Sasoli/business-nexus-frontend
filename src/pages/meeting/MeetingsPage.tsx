@@ -135,9 +135,9 @@ export const MeetingsPage: React.FC = () => {
       const res = await getMeetings();
       setMeetings(Array.isArray(res) ? res : []);
       toast.success("Meeting created successfully!");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error creating meeting:", err);
-      toast.error("Failed to create meeting");
+      toast.error(err?.response?.data?.error || 'Failed to create Meeting');
     }
   };
 
